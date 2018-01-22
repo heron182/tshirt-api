@@ -10,15 +10,15 @@ from tshirt.views import tshirt_list
 @pytest.mark.django_db(transaction=True)
 class TestTshirtCollection:
     def test_get_a_list_of_tshirts_as_json(self):
-        Tshirt.objects.create(brand='Volcom', quantity=10, size='M')
-        Tshirt.objects.create(brand='Zoo York', quantity=5, size='S')
+        Tshirt.objects.create(brand='Volcom', quantity=10, size='L', pk=1)
+        Tshirt.objects.create(brand='Zoo York', quantity=5, size='S', pk=2)
         client = Client()
         resp = client.get('/tshirt/')
         assert resp.json() == [{
             'brand': 'Volcom',
             'pk': 1,
             'quantity': 10,
-            'size': 'M'
+            'size': 'L'
         }, {
             'brand': 'Zoo York',
             'pk': 2,
@@ -34,6 +34,5 @@ class TestTshirtCollection:
             '/tshirt/',
             data=json.dumps(post_data),
             content_type='application/json')
-        assert len(
-            Tshirt.objects.filter(brand="Volcom", quantity=10, size="M")) == 1
+        assert len(Tshirt.objects.filter(brand="Volcom", quantity=10)) == 1
         assert resp.status_code == 201

@@ -7,7 +7,7 @@ from tshirt.serializers import TshirtSerializer
 @pytest.mark.django_db(transaction=True)
 class TestTshirtSerializer:
     def test_can_serialize_tshirt_model(self):
-        tshirt = Tshirt(brand='Volcom', quantity=10, size='M')
+        tshirt = Tshirt(brand='Volcom', quantity=10, size='M', pk=1)
         tshirt.save()
         serialized_tshirt = TshirtSerializer(tshirt)
         assert serialized_tshirt.data == {
