@@ -12,7 +12,7 @@ class TshirtSerializer(serializers.Serializer):
         return Tshirt.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.brand = validated_data.get('brand', instance.name)
+        instance.brand = validated_data.get('brand', instance.brand)
         instance.size = validated_data.get('size', instance.size)
         instance.quantity = validated_data.get('quantity', instance.quantity)
         instance.save()

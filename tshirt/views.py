@@ -30,3 +30,26 @@ def tshirt_list(request):
                 tshirt_serializer.data, status=status.HTTP_201_CREATED)
         return JSONResponse(
             tshirt_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@csrf_exempt
+def tshirt_detail(request, pk):
+    try:
+        tshirt = Tshirt.objects.get(pk=pk)
+    except Tshirt.DoesNotExist:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        tshirt_serializer = TshirtSerializer(tshirt)
+        return JSONResponse(tshirt_serializer.data)
+    elif request.method == 'PUT':
+        tshirt_data = JSONParser().parse(request)
+        tshirt_serializer = TshirtSerializer(tshirt, data=tshirt_data)
+        if tshirt_serializer.is_valid():
+            tshirt_serializer.save()
+            return JSONResponse(tshirt_serializer.data)
+        return JSONResponse(
+            tshirt_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        tshirt.delete()
+        return HttpResponse(status=status.HTTP_204_NO_CONTENT)

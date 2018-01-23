@@ -11,3 +11,8 @@
 | PUT    | Update a single t-shirt by id                      | T-shirt     |
 | DELETE | Delete a single t-shirt by id                      | T-shirt     |
 | POST   | Create a new t-shirt in the collection             | Collection |
+
+### Flow of data
+**GET** -> Model -> Serializer -> JSONRenderer -> Response
+
+**POST/PUT** -> JSONParser(request) -> Serializer -> Model -> JSONRenderer -> Response
