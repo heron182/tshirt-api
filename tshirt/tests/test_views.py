@@ -30,10 +30,7 @@ class TestTshirtCollection:
     def test_post_a_new_tshirt(self):
         post_data = {"brand": "Volcom", "quantity": 10, "size": "M"}
         client = Client()
-        resp = client.post(
-            '/tshirt/',
-            data=json.dumps(post_data),
-            content_type='application/json')
+        resp = client.post('/tshirt/', data=post_data)
         assert len(Tshirt.objects.filter(brand="Volcom", quantity=10)) == 1
         assert resp.status_code == 201
 
