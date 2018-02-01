@@ -1,50 +1,56 @@
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.parsers import JSONParser
-from rest_framework.renderers import JSONRenderer
+from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
-from tshirt.models import Tshirt
-from tshirt.serializers import TshirtSerializer
-
-
-@csrf_exempt
-@api_view(['GET', 'POST'])
-def tshirt_list(request):
-    if request.method == 'GET':
-        tshirts = Tshirt.objects.all()
-        tshirts_serializer = TshirtSerializer(tshirts, many=True)
-        return Response(tshirts_serializer.data)
-    elif request.method == 'POST':
-        tshirt_serializer = TshirtSerializer(data=request.data)
-        if tshirt_serializer.is_valid():
-            tshirt_serializer.save()
-            return Response(
-                data=tshirt_serializer.data, status=status.HTTP_201_CREATED)
-    return Response(
-        data=tshirt_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from tshirt.models import Color, Category, Brand
+from tshirt.serializers import ColorSerializer, CategorySerializer, BrandSerializer
 
 
-@csrf_exempt
-@api_view(['GET', 'PUT', 'DELETE'])
-def tshirt_detail(request, pk):
-    try:
-        tshirt = Tshirt.objects.get(pk=pk)
-    except Tshirt.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+class ApiRoot(generics.GenericAPIView):
+    name = 'api-root'
 
-    if request.method == 'GET':
-        tshirt_serializer = TshirtSerializer(tshirt)
-        return Response(data=tshirt_serializer.data)
-    elif request.method == 'PUT':
-        tshirt_serializer = TshirtSerializer(tshirt, data=request.data)
-        if tshirt_serializer.is_valid():
-            tshirt_serializer.save()
-            return Response(data=tshirt_serializer.data)
-        return Response(
-            tshirt_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    elif request.method == 'DELETE':
-        tshirt.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get(self, request, *args, **kwargs):
+        return Response({
+            'colors':
+            reverse(ColorList.name, request=request),
+            'categories':
+            reverse(CategoryList.name, request=request),
+            'brands':
+            reverse(BrandList.name, request=request)
+        })
+
+
+class ColorList(generics.ListCreateAPIView):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+    name = 'color-list'
+
+
+class ColorListDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Color.objects.all()
+    serializer_class = ColorSerializer
+    name = 'color-detail'
+
+
+class CategoryList(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    name = 'category-list'
+
+
+class CategoryListDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    name = 'category-detail'
+
+
+class BrandList(generics.ListCreateAPIView):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    name = 'brand-list'
+
+
+class BrandListDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    name = 'brand-detail'
