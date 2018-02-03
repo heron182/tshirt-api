@@ -7,12 +7,12 @@ from rest_framework.test import APIRequestFactory
 from tshirt.models import Brand, Category, Color, Tshirt
 from tshirt.serializers import (BrandSerializer, CategorySerializer,
                                 ColorSerializer, TshirtSerializer)
-from tshirt.views import BrandListDetail, CategoryListDetail, ColorListDetail
 
 
 @pytest.mark.django_db()
 class BaseTestSerializer:
     request_factory = APIRequestFactory()
+    fake_request = request_factory.get(path='/')
 
     @staticmethod
     def model_fields_in_serialized_data(model_as_dict, payload):
@@ -35,9 +35,10 @@ class TestColorSerializer(BaseTestSerializer):
     def test_can_serialize_a_color_from_db(self):
         color = Color(name='blue')
         color.save()
-        request = self.request_factory.get(
-            path=reverse(ColorListDetail.name, args=[color.pk]))
-        serialized_color = ColorSerializer(color, context={'request': request})
+        serialized_color = ColorSerializer(
+            color, context={
+                'request': self.fake_request
+            })
         color_as_dict = Color.objects.filter(name='blue').values().first()
         assert self.model_fields_in_serialized_data(color_as_dict,
                                                     serialized_color.data)
@@ -59,11 +60,9 @@ class TestCategorySerializer(BaseTestSerializer):
     def test_can_serialize_a_category_from_db(self):
         category = Category(name='Full sleeve')
         category.save()
-        request = self.request_factory.get(
-            path=reverse(CategoryListDetail.name, args=[category.pk]))
         serialized_category = CategorySerializer(
             category, context={
-                'request': request
+                'request': self.fake_request
             })
         category_as_dict = Category.objects.filter(
             name='Full sleeve').values().first()
@@ -87,64 +86,68 @@ class TestBrandSerializer(BaseTestSerializer):
     def test_can_serialize_a_brand_from_db(self):
         brand = Brand(name='Volcom')
         brand.save()
-        request = self.request_factory.get(
-            path=reverse(BrandListDetail.name, args=[brand.pk]))
-        serialized_brand = BrandSerializer(brand, context={'request': request})
+        serialized_brand = BrandSerializer(
+            brand, context={
+                'request': self.fake_request
+            })
         brand_as_dict = Brand.objects.filter(name='Volcom').values().first()
         assert self.model_fields_in_serialized_data(brand_as_dict,
                                                     serialized_brand.data)
 
 
 class TestTshirtSerializer(BaseTestSerializer):
-    @staticmethod
-    def create_tshirt():
-        color = Color(name='Blue')
-        color.save()
-        brand = Brand(name='Volcom')
-        brand.save()
-        category = Category(name='Short Sleeve')
-        category.save()
-        # tshirt = Tshirt(
-        #     name='Black city',
-        #     color=color,
-        #     brand=brand,
-        #     category=category,
-        #     size='L',
-        #     quantity=10,
-        #     unity_price=79.90)
-        # tshirt.save()
+    def create_tshirt_dependencies(self):
+        self.color = Color(name='Blue')
+        self.color.save()
+        self.brand = Brand(name='Volcom')
+        self.brand.save()
+        self.category = Category(name='Short Sleeve')
+        self.category.save()
 
+    def get_tshirt_payload(self):
+        self.create_tshirt_dependencies()
         return {
             'name': 'Black city',
-            'brand': 'Volcom',
-            'category': 'Short Sleeve',
-            'color': 'Blue',
+            'brand': f'{self.brand.name}',
+            'category': f'{self.category.name}',
+            'color': f'{self.color.name}',
             'size': 'L',
             'quantity': 10,
             'unity_price': 79.90,
             'date_added': str(datetime.now())
         }
 
+    def get_tshirt_model(self):
+        self.create_tshirt_dependencies()
+        tshirt = Tshirt(
+            name='Black city',
+            color=self.color,
+            brand=self.brand,
+            category=self.category,
+            size='L',
+            quantity=10,
+            unity_price=79.90)
+        tshirt.save()
+        return tshirt
+
     def test_can_create_tshirt(self):
-        tshirt = self.create_tshirt()
+        tshirt = self.get_tshirt_payload()
         serialized_tshirt = TshirtSerializer(data=tshirt)
         serialized_tshirt.is_valid()
-        import pdb
-        pdb.set_trace()
         serialized_tshirt.save()
         assert Tshirt.objects.get(name='Black city')
 
-    def test_invalid_brand_payload(self):
-        brand = {'name': None}
-        serialized_brand = BrandSerializer(data=brand)
-        assert serialized_brand.is_valid() is False
+    def test_invalid_tshirt_payload(self):
+        tshirt = {'name': 'What', 'color': 'Not saved on db'}
+        serialized_tshirt = TshirtSerializer(data=tshirt)
+        assert serialized_tshirt.is_valid() is False
 
-    def test_can_serialize_a_brand_from_db(self):
-        brand = Brand(name='Volcom')
-        brand.save()
-        request = self.request_factory.get(
-            path=reverse(BrandListDetail.name, args=[brand.pk]))
-        serialized_brand = BrandSerializer(brand, context={'request': request})
-        brand_as_dict = Brand.objects.filter(name='Volcom').values().first()
-        assert self.model_fields_in_serialized_data(brand_as_dict,
-                                                    serialized_brand.data)
+    def test_can_serialize_a_tshirt_from_db(self):
+        tshirt = self.get_tshirt_model()
+        serialized_tshirt = TshirtSerializer(
+            tshirt, context={
+                'request': self.fake_request
+            })
+        serialized_id = serialized_tshirt.data['id']
+        tshirt = Tshirt.objects.all().first()
+        assert tshirt.id == serialized_id

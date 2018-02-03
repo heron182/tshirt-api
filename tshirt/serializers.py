@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from tshirt.models import Color, Category, Brand, Tshirt
+from tshirt.models import Brand, Category, Color, Tshirt
 
 
 class ColorSerializer(serializers.HyperlinkedModelSerializer):

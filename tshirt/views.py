@@ -2,8 +2,9 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from tshirt.models import Color, Category, Brand
-from tshirt.serializers import ColorSerializer, CategorySerializer, BrandSerializer
+from tshirt.models import Brand, Category, Color, Tshirt
+from tshirt.serializers import (BrandSerializer, CategorySerializer,
+                                ColorSerializer, TshirtSerializer)
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -16,7 +17,9 @@ class ApiRoot(generics.GenericAPIView):
             'categories':
             reverse(CategoryList.name, request=request),
             'brands':
-            reverse(BrandList.name, request=request)
+            reverse(BrandList.name, request=request),
+            'tshirts':
+            reverse(TshirtList.name, request=request)
         })
 
 
@@ -54,3 +57,15 @@ class BrandListDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
     name = 'brand-detail'
+
+
+class TshirtList(generics.ListCreateAPIView):
+    queryset = Tshirt.objects.all()
+    serializer_class = TshirtSerializer
+    name = 'tshirt-list'
+
+
+class TshirtListDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Tshirt.objects.all()
+    serializer_class = TshirtSerializer
+    name = 'tshirt-detail'
