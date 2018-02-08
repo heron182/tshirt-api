@@ -18,7 +18,7 @@ urlpatterns = [
     url(r'^brand/(?P<pk>[0-9]+)/$',
         views.BrandListDetail.as_view(),
         name=views.BrandListDetail.name),
-    url(r'^tshirt/$', views.BrandList.as_view(), name=views.BrandList.name),
+    url(r'^tshirt/$', views.TshirtList.as_view(), name=views.TshirtList.name),
     url(r'^tshirt/(?P<pk>[0-9]+)/$',
         views.TshirtListDetail.as_view(),
         name=views.TshirtListDetail.name),
